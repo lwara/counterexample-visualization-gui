@@ -1,124 +1,91 @@
-from tkinter import *
-from tkinter import filedialog
-import ttkbootstrap as tb
+import tkinter as tk
+from tkinter import ttk
 
-root = tb.Window(themename="superhero")
-root.title("Counterexample Visualisation- UCLID5")
-root.geometry('2700x2000')
-
-
-
-# Heading
-heading_label = Label(root, text="Counterexample Visualisation- UCLID5", font=("Helvetica", 20))
-heading_label.pack(pady=30)
-
-# Horizontal Line
-line = tb.Separator(root, orient='horizontal')
-line.pack(fill='x', pady=10)
-
-# Dropdown Menu for Themes
-themes_label = tb.Label(root, text="Select Theme:", width=50)
-##themes_label.pack(side=LEFT, fill=X, pady=10)
-
-themes_label2 = tb.Label(root, text="Select Theme:")
-#themes_label2.pack(side=LEFT, fill=X, pady=10)
-
-# Notebook
-my_notebook = tb.Notebook(root, bootstyle="light", width=2500, height=2000)
-my_notebook.pack(pady=200)
-
-  
-    
-       
-def on_button1_click(tab_frame):
-    """_summary_
-
-    Args:
-        tab_frame (_type_): _description_
-    """
-    text1 = tab_frame.text_area1.get("1.0", "end-1c")
-    text2 = tab_frame.text_area2.get("1.0", "end-1c")
-    print(f"Button 1 clicked on Tab {tab_frame.tab_number}")
-    print(f"Text Area 1 Content: {text1}")
-    print(f"Text Area 2 Content: {text2}")
-
-def on_button2_click(tab_frame):
-    """_summary_
-
-    Args:
-        tab_frame (_type_): _description_
-    """
-    text1 = tab_frame.text_area1.get("1.0", "end-1c")
-    text2 = tab_frame.text_area2.get("1.0", "end-1c")
-    print(f"Button 2 clicked on Tab {tab_frame.tab_number}")
-    print(f"Text Area 1 Content: {text1}")
-    print(f"Text Area 2 Content: {text2}")
-
-def upload_file(tab_frame):
-    """_summary_
-
-    Args:
-        tab_frame (_type_): _description_
-    """
-    file_path = filedialog.askopenfilename(title="Select a file")
-    tab_frame.text_area2.insert("1.0", f"File Uploaded: {file_path}\n")
-
-def clear_text_areas(tab_frame):
-    """_summary_
-
-    Args:
-        tab_frame (_type_): _description_
-    """
-    tab_frame.text_area1.delete("1.0", END)
-    tab_frame.text_area2.delete("1.0", END)
-
-
-class TabFrame(tb.Frame):
-    """_summary_
-
-    Args:
-        tb (_type_): _description_
-    """
-    def __init__(self, notebook, tab_number, label1, label2):
-        super().__init__(notebook)
-        self.tab_number = tab_number
+class App(tk.Tk):
+    def __init__(self):
+        super().__init__()
+        self.title("Data Presentation")
+        self.geometry("800x600")
         
-        label1 = Label(self, text=label1)        
-        label1.pack(fill=X, pady=10)
-        label2 = Label(self, text=label2)
-        label2.pack(pady=5)
-
-        self.text_area1 = Text(self, width=70, height=30)
-        self.text_area1.pack(side=LEFT)
+        # Data for pagination
+        self.data = [
+            ("0", "PASSED", "unroll [Step #0] property a_lhelloworld.pye_b @ /home/tiwonge/Documents/School/IPP/counterexample-visualization-gui/samples.ucl, line 13"),
+            ("1", "PASSED", "unroll [Step #1] property a_le_b @ /home/tiwonge/Documents/School/IPP/counterexample-visualization-gui/samples.ucl, line 13"),
+            ("2", "PASSED", "unroll [Step #2] property a_le_b @ /home/tiwonge/Documents/School/IPP/counterexample-visualization-gui/samples.ucl, line 13"),
+            ("3", "PASSED", "unroll [Step #3] property a_le_b @ /home/tiwonge/Documents/School/IPP/counterexample-visualization-gui/samples.ucl, line 13"),
+            ("4", "PASSED", "unroll [Step #3] property a_le_b @ /home/tiwonge/Documents/School/IPP/counterexample-visualization-gui/samples.ucl, line 13"),
+            ("5", "FAILED", "unroll [Step #3] property a_le_b @ /home/tiwonge/Documents/School/IPP/counterexample-visualization-gui/samples.ucl, line 13"),
+            ("6", "PASSED", "unroll [Step #3] property a_le_b @ /home/tiwonge/Documents/School/IPP/counterexample-visualization-gui/samples.ucl, line 13"),
+            ("7", "PASSED", "unroll [Step #3] property a_le_b @ /home/tiwonge/Documents/School/IPP/counterexample-visualization-gui/samples.ucl, line 13"),
+            ("8", "FAILED", "unroll [Step #3] property a_le_b @ /home/tiwonge/Documents/School/IPP/counterexample-visualization-gui/samples.ucl, line 13"),
+            ("9", "PASSED", "unroll [Step #3] property a_le_b @ /home/tiwonge/Documents/School/IPP/counterexample-visualization-gui/samples.ucl, line 13"),
+            ("10", "PASSED", "unroll [Step #3] property a_le_b @ /home/tiwonge/Documents/School/IPP/counterexample-visualization-gui/samples.ucl, line 13"),
+            ("11", "PASSED", "unroll [Step #3] property a_le_b @ /home/tiwonge/Documents/School/IPP/counterexample-visualization-gui/samples.ucl, line 13"),
+        ]
         
+        # Page settings
+        self.page_size = 5
+        self.current_page = 0
+
+        # Create a frame to hold the table
+        self.table_frame = ttk.Frame(self)
+        self.table_frame.place(x=100, y=50)  # Centering the table
+        self.table_frame.pack(fill="both", expand=True)
         
-        self.text_area2 = Text(self, width=70, height=30)
-        self.text_area2.pack(side=RIGHT)
+        # Create pagination buttons
+        prev_button = ttk.Button(self, text="Previous", command=self.show_previous_page)
+        prev_button.pack(side="left", padx=10, pady=5)
+        next_button = ttk.Button(self, text="Next", command=self.show_next_page)
+        next_button.pack(side="right", padx=10, pady=5)
 
+        # Display column labels
+        self.create_column_labels()
+
+        # Display data for the current page
+        self.display_current_page()
         
+    def create_column_labels(self):
+        # Create column labels
+        columns = ["Step", "Status", "Property"]
+        for col, column_name in enumerate(columns):
+            label = ttk.Label(self.table_frame, text=column_name, font=("Helvetica", 10, "bold"))
+            label.grid(row=0, column=col, sticky="nsew", padx=1, pady=1)
+
+    def display_current_page(self):
+        # Clear previous data from the table
+        for widget in self.table_frame.winfo_children():
+            widget.destroy()
         
-        button1 = tb.Button(self, text="Button 1", bootstyle="primary outline", command=lambda: on_button1_click(self))
-        #button1.pack(pady=10)
+        # Display column labels
+        self.create_column_labels()
 
-        button2 = tb.Button(self, text="Button 2", bootstyle="danger outline", command=lambda: on_button2_click(self))
-        #button2.pack(pady=10)
-        
-        
-        if self.tab_number == 2:
-            upload_button = tb.Button(self, text="Upload File", bootstyle="warning", command=lambda: upload_file(self))
-            upload_button.pack(side=LEFT, pady=10, padx=(0,5))
-            
-            # Hide text_area1 in Tab 2
-             # Bind the clear_text_areas function to the tab selected event
-            self.bind("<Visibility>", lambda event: clear_text_areas(self))
+        # Display data for the current page
+        start_index = self.current_page * self.page_size
+        end_index = min(start_index + self.page_size, len(self.data))
+        for row, item in enumerate(self.data[start_index:end_index], start=1):
+            for col, value in enumerate(item):
+                # Choose background color based on row number
+                bg_color = "lightgray" if row % 2 == 0 else "white"
+                label = ttk.Label(self.table_frame, text=value, background=bg_color)
+                label.grid(row=row, column=col, sticky="nsew", padx=1, pady=1)
 
-            self.text_area1.pack_forget()
+        # Configure row and column weights to make the grid resizable
+        self.table_frame.grid_columnconfigure(0, weight=1)
+        self.table_frame.grid_columnconfigure(1, weight=1)
+        self.table_frame.grid_columnconfigure(2, weight=2)
+        for i in range(min(len(self.data) - self.current_page * self.page_size, self.page_size) + 1):
+            self.table_frame.grid_rowconfigure(i, weight=1)
 
-# Create TabFrames and add them to the notebook
-tab1 = TabFrame(my_notebook, 1, "Type code Here", "Counter Example Report")
-tab2 = TabFrame(my_notebook, 2, "Please click the Button to upload a file", "Label Y")
+    def show_previous_page(self):
+        if self.current_page > 0:
+            self.current_page -= 1
+            self.display_current_page()
 
-my_notebook.add(tab1, text="Run Code")
-my_notebook.add(tab2, text="Upload Code file")
+    def show_next_page(self):
+        if (self.current_page + 1) * self.page_size < len(self.data):
+            self.current_page += 1
+            self.display_current_page()
 
-root.mainloop()
+if __name__ == "__main__":
+    app = App()
+    app.mainloop()

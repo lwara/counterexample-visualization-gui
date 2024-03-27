@@ -28,23 +28,13 @@ class Upload(Frame):
         self.canvas.place(x=0, y=0)
         
         ##############################
-        self.result_text = Text(self, wrap="word", width=80, height=10)
-        """self.result_text.place(x=400, y=400)
-
-        self.scrollbar = Scrollbar(self, orient="vertical", command=self.result_text.yview)
-        self.scrollbar.place(x=1680, y=400, height=400)
-
-        self.result_text.config(yscrollcommand=self.scrollbar.set)
-        
-        # Configure tags for different sections
-        self.result_text.tag_configure("output", foreground="green")
-        self.result_text.tag_configure("error", foreground="red")"""
+        """self.result_text = Text(self, wrap="word", width=100, height=30)         
         # Calculate the height of the Text widget in terms of lines
         text_height_in_lines = int(self.result_text.cget("height"))
 
         # Create the Text widget
-        self.result_text = Text(self, wrap="word", width=80, height=10)
-        self.result_text.place(x=400, y=400)
+        #self.result_text = Text(self, wrap="word", width=80, height=10)
+        self.result_text.place(x=200, y=400)
 
         # Calculate the height of one line of text in the Text widget
         line_height = self.result_text.tk.call("font", "metrics", self.result_text.cget("font"), "-linespace")
@@ -61,7 +51,7 @@ class Upload(Frame):
 
         # Configure tags for different sections
         self.result_text.tag_configure("output", foreground="green")
-        self.result_text.tag_configure("error", foreground="red")
+        self.result_text.tag_configure("error", foreground="red")"""
         ############################
         self.canvas.create_text(
             407.0,
@@ -105,7 +95,7 @@ class Upload(Frame):
             width=218.0,
             height=50.0
         )
-
+        
         self.canvas.create_text(
             831.0,
             27.0,
@@ -135,8 +125,89 @@ class Upload(Frame):
 
         self.master.resizable(False, False)
         
-    def create_result_text_area():
+    def create_table(self):
+        self.cr
+        pass
         
+    
+    def place_word_on_canvas2(self, word):
+        # Clear the canvas first
+        self.canvas.delete("word_text")
+    
+        self.canvas.create_text(
+            500.0,
+            350.0,
+            anchor="nw",
+            text="file uploaded:" + word,
+            fill="#428EA6",
+            font=("MontserratRoman Bold", 12 * -1),
+            tags= "word_text"
+            
+        )
+    def place_word_on_canvas(self, word):
+        # Clear the canvas first
+        self.canvas.delete("table_text")
+        self.data = [
+            ("0", "PASSED", "unroll [Step #0] property a_lhelloworld.pye_b @ /home/tiwonge/Documents/School/IPP/counterexample-visualization-gui/samples.ucl, line 13"),
+            ("1", "PASSED", "unroll [Step #1] property a_le_b @ /home/tiwonge/Documents/School/IPP/counterexample-visualization-gui/samples.ucl, line 13"),
+            ("2", "PASSED", "unroll [Step #2] property a_le_b @ /home/tiwonge/Documents/School/IPP/counterexample-visualization-gui/samples.ucl, line 13"),
+            ("3", "PASSED", "unroll [Step #3] property a_le_b @ /home/tiwonge/Documents/School/IPP/counterexample-visualization-gui/samples.ucl, line 13"),
+            ("4", "PASSED", "unroll [Step #3] property a_le_b @ /home/tiwonge/Documents/School/IPP/counterexample-visualization-gui/samples.ucl, line 13"),
+            ("5", "FAILED", "unroll [Step #3] property a_le_b @ /home/tiwonge/Documents/School/IPP/counterexample-visualization-gui/samples.ucl, line 13"),
+            ("6", "PASSED", "unroll [Step #3] property a_le_b @ /home/tiwonge/Documents/School/IPP/counterexample-visualization-gui/samples.ucl, line 13"),
+            ("7", "PASSED", "unroll [Step #3] property a_le_b @ /home/tiwonge/Documents/School/IPP/counterexample-visualization-gui/samples.ucl, line 13"),
+            ("8", "FAILED", "unroll [Step #3] property a_le_b @ /home/tiwonge/Documents/School/IPP/counterexample-visualization-gui/samples.ucl, line 13"),
+            ("9", "PASSED", "unroll [Step #3] property a_le_b @ /home/tiwonge/Documents/School/IPP/counterexample-visualization-gui/samples.ucl, line 13"),
+            ("10", "PASSED", "unroll [Step #3] property a_le_b @ /home/tiwonge/Documents/School/IPP/counterexample-visualization-gui/samples.ucl, line 13"),
+            ("11", "PASSED", "unroll [Step #3] property a_le_b @ /home/tiwonge/Documents/School/IPP/counterexample-visualization-gui/samples.ucl, line 13"),
+        ]
+        
+        # Page settings
+        self.page_size = 5
+        self.current_page = 0
+        
+         # Create a table
+        header = ["ID", "Status", "Message"]
+        data = self.data[self.current_page * self.page_size:(self.current_page + 1) * self.page_size]
+
+        x_start = 500
+        y_start = 400
+        cell_width = 700
+        cell_height = 50
+
+        # Draw header
+        for i, header_text in enumerate(header):
+            x = x_start + i * cell_width
+            y = y_start
+            self.canvas.create_text(x + cell_width // 2, y + cell_height // 2, text=header_text, fill="black", tag="table_text")
+
+        # Draw data
+        for row_index, row_data in enumerate(data):
+            row_color = "lightblue" if row_index % 2 == 0 else "lightgrey"  # Alternate row colors
+            for col_index, col_data in enumerate(row_data):
+                x = x_start + col_index * cell_width
+                y = y_start + (row_index + 1) * cell_height
+                self.canvas.create_rectangle(x,y, x + cell_width, y + cell_height, fill=row_color, tag="table_rect")
+                self.canvas.create_text(x + cell_width // 2, y + cell_height // 2, text=col_data, fill="black", tag="table_text")
+
+        # Draw navigation buttons
+        prev_button = Button(self.canvas, text="Prev", command=self.prev_page)
+        prev_button.place(x=100, y=400)
+        next_button = Button(self.canvas, text="Next", command=self.next_page)
+        next_button.place(x=300, y=400)
+
+    def prev_page(self):
+        if self.current_page > 0:
+            self.current_page -= 1
+            self.place_word_on_canvas("")
+
+    def next_page(self):
+        max_page = len(self.data) // self.page_size
+        if self.current_page < max_page:
+            self.current_page += 1
+            self.place_word_on_canvas("")
+
+
 
     def run_uclid(self):
         """_summary_
@@ -148,19 +219,18 @@ class Upload(Frame):
             # Create an instance of the UclidRunner class
             uclid_runner = UclidRunner()
             result = uclid_runner.run_uclid5_command(self._file_upload_)
-            decoded_result=result.decode('utf8').replace("'", '"')
+            decoded_result=result.decode('utf8').replace("'", '"')        
             
-            # once you make the 
             
             print(result)
-            print("#################################33")
-            print(type(decoded_result))
+            print("#################################")
             # Convert the result to a JSON string
             json_result = orjson.loads(decoded_result) # pylint: disable=maybe-no-member
 
             # Display the result in the custom text widget
             self.result_text.delete(1.0, END)  # Clear previous content
-            #self.result_text.insert(END, json_result)
+            
+            print(json_result)
             
              # Highlight different sections with tags
             output_text = json_result.get("output", "")
@@ -171,6 +241,7 @@ class Upload(Frame):
             self.result_text.insert(END, "\nError: ")
             self.result_text.insert(END, error_text, "error")
 
+            
     def get_uploaded_file(self):
         """_summary_
         """
@@ -178,7 +249,9 @@ class Upload(Frame):
         file_path = filedialog.askopenfilename(title="Select a UCLID5 file", filetypes=[("UCLID5 Files", "*.ucl")])
         if file_path:
             self._file_upload_ = file_path
-
+            self.place_word_on_canvas(file_path)
+            
+             
 
     def relative_to_assets(self, path: str) -> Path:
         OUTPUT_PATH = Path(__file__).parent
