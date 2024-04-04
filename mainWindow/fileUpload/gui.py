@@ -125,9 +125,7 @@ class Upload(Frame):
 
         self.master.resizable(False, False)
         
-    def create_table(self):
-        self.cr
-        pass
+     
         
     
     def place_word_on_canvas2(self, word):
@@ -147,6 +145,7 @@ class Upload(Frame):
     def place_word_on_canvas(self, word):
         # Clear the canvas first
         self.canvas.delete("table_text")
+        self.canvas.delete("table_rect")
         self.data = [
             ("0", "PASSED", "unroll [Step #0] property a_lhelloworld.pye_b @ /home/tiwonge/Documents/School/IPP/counterexample-visualization-gui/samples.ucl, line 13"),
             ("1", "PASSED", "unroll [Step #1] property a_le_b @ /home/tiwonge/Documents/School/IPP/counterexample-visualization-gui/samples.ucl, line 13"),
@@ -170,18 +169,20 @@ class Upload(Frame):
         header = ["ID", "Status", "Message"]
         data = self.data[self.current_page * self.page_size:(self.current_page + 1) * self.page_size]
 
-        x_start = 500
-        y_start = 400
-        cell_width = 700
+        x_start = 10
+        y_start = 500
+        cell_width = 500
         cell_height = 50
+        row_index = 0
 
         # Draw header
         for i, header_text in enumerate(header):
             x = x_start + i * cell_width
-            y = y_start
+            y = y_start + row_index * cell_height
             self.canvas.create_text(x + cell_width // 2, y + cell_height // 2, text=header_text, fill="black", tag="table_text")
 
-        # Draw data
+        # Draw data <HERE>
+        #for row_index, row_data in enumerate(data):
         for row_index, row_data in enumerate(data):
             row_color = "lightblue" if row_index % 2 == 0 else "lightgrey"  # Alternate row colors
             for col_index, col_data in enumerate(row_data):
@@ -189,7 +190,7 @@ class Upload(Frame):
                 y = y_start + (row_index + 1) * cell_height
                 self.canvas.create_rectangle(x,y, x + cell_width, y + cell_height, fill=row_color, tag="table_rect")
                 self.canvas.create_text(x + cell_width // 2, y + cell_height // 2, text=col_data, fill="black", tag="table_text")
-
+            row_index += 1
         # Draw navigation buttons
         prev_button = Button(self.canvas, text="Prev", command=self.prev_page)
         prev_button.place(x=100, y=400)
@@ -199,7 +200,7 @@ class Upload(Frame):
     def prev_page(self):
         if self.current_page > 0:
             self.current_page -= 1
-            self.place_word_on_canvas("")
+            self.place_word_on_canvas("word")
 
     def next_page(self):
         max_page = len(self.data) // self.page_size

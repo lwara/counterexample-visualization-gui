@@ -160,7 +160,7 @@ class Uclid5GUI(Toplevel):
         self.current_window.place(x=405, y=0, width=2095.0, height=2000.0)
         self.current_window.tkraise()
         
-        self.resizable(False, False)
+        self.resizable(True, False)
         self.mainloop()
 
     def relative_to_assets(self, path: str) -> Path:
