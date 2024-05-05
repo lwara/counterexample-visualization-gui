@@ -1,9 +1,13 @@
+import json
 from pathlib import Path
 from tkinter import END, Frame, Text, Scrollbar, Tk, Canvas, Button, PhotoImage, filedialog
-#from ttkbootstrap import Scrollbar
+#from ttkbootstrap import END, Frame, Text, Scrollbar, Canvas, Button, PhotoImage
 import orjson
 
-from checker.file_upload import UclidRunner
+from checker.file_upload import ProcessUclidResults, UclidRunner
+#from mainWindow.gui import Uclid5GUI
+#from mainWindow.reportExecution.gui import Report
+ 
 
 def uploadFile():
     Upload()
@@ -28,7 +32,7 @@ class Upload(Frame):
         self.canvas.place(x=0, y=0)
         
         ##############################
-        """self.result_text = Text(self, wrap="word", width=100, height=30)         
+        self.result_text = Text(self, wrap="word", width=100, height=30)         
         # Calculate the height of the Text widget in terms of lines
         text_height_in_lines = int(self.result_text.cget("height"))
 
@@ -51,7 +55,7 @@ class Upload(Frame):
 
         # Configure tags for different sections
         self.result_text.tag_configure("output", foreground="green")
-        self.result_text.tag_configure("error", foreground="red")"""
+        self.result_text.tag_configure("error", foreground="red")
         ############################
         self.canvas.create_text(
             407.0,
@@ -128,7 +132,7 @@ class Upload(Frame):
      
         
     
-    def place_word_on_canvas2(self, word):
+    def place_word_on_canvas(self, word):
         # Clear the canvas first
         self.canvas.delete("word_text")
     
@@ -139,114 +143,87 @@ class Upload(Frame):
             text="file uploaded:" + word,
             fill="#428EA6",
             font=("MontserratRoman Bold", 12 * -1),
-            tags= "word_text"
-            
+            tags= "word_text"            
         )
-    def place_word_on_canvas(self, word):
-        # Clear the canvas first
-        self.canvas.delete("table_text")
-        self.canvas.delete("table_rect")
-        self.data = [
-            ("0", "PASSED", "unroll [Step #0] property a_lhelloworld.pye_b @ /home/tiwonge/Documents/School/IPP/counterexample-visualization-gui/samples.ucl, line 13"),
-            ("1", "PASSED", "unroll [Step #1] property a_le_b @ /home/tiwonge/Documents/School/IPP/counterexample-visualization-gui/samples.ucl, line 13"),
-            ("2", "PASSED", "unroll [Step #2] property a_le_b @ /home/tiwonge/Documents/School/IPP/counterexample-visualization-gui/samples.ucl, line 13"),
-            ("3", "PASSED", "unroll [Step #3] property a_le_b @ /home/tiwonge/Documents/School/IPP/counterexample-visualization-gui/samples.ucl, line 13"),
-            ("4", "PASSED", "unroll [Step #3] property a_le_b @ /home/tiwonge/Documents/School/IPP/counterexample-visualization-gui/samples.ucl, line 13"),
-            ("5", "FAILED", "unroll [Step #3] property a_le_b @ /home/tiwonge/Documents/School/IPP/counterexample-visualization-gui/samples.ucl, line 13"),
-            ("6", "PASSED", "unroll [Step #3] property a_le_b @ /home/tiwonge/Documents/School/IPP/counterexample-visualization-gui/samples.ucl, line 13"),
-            ("7", "PASSED", "unroll [Step #3] property a_le_b @ /home/tiwonge/Documents/School/IPP/counterexample-visualization-gui/samples.ucl, line 13"),
-            ("8", "FAILED", "unroll [Step #3] property a_le_b @ /home/tiwonge/Documents/School/IPP/counterexample-visualization-gui/samples.ucl, line 13"),
-            ("9", "PASSED", "unroll [Step #3] property a_le_b @ /home/tiwonge/Documents/School/IPP/counterexample-visualization-gui/samples.ucl, line 13"),
-            ("10", "PASSED", "unroll [Step #3] property a_le_b @ /home/tiwonge/Documents/School/IPP/counterexample-visualization-gui/samples.ucl, line 13"),
-            ("11", "PASSED", "unroll [Step #3] property a_le_b @ /home/tiwonge/Documents/School/IPP/counterexample-visualization-gui/samples.ucl, line 13"),
-        ]
         
-        # Page settings
-        self.page_size = 5
-        self.current_page = 0
-        
-         # Create a table
-        header = ["ID", "Status", "Message"]
-        data = self.data[self.current_page * self.page_size:(self.current_page + 1) * self.page_size]
-
-        x_start = 10
-        y_start = 500
-        cell_width = 500
-        cell_height = 50
-        row_index = 0
-
-        # Draw header
-        for i, header_text in enumerate(header):
-            x = x_start + i * cell_width
-            y = y_start + row_index * cell_height
-            self.canvas.create_text(x + cell_width // 2, y + cell_height // 2, text=header_text, fill="black", tag="table_text")
-
-        # Draw data <HERE>
-        #for row_index, row_data in enumerate(data):
-        for row_index, row_data in enumerate(data):
-            row_color = "lightblue" if row_index % 2 == 0 else "lightgrey"  # Alternate row colors
-            for col_index, col_data in enumerate(row_data):
-                x = x_start + col_index * cell_width
-                y = y_start + (row_index + 1) * cell_height
-                self.canvas.create_rectangle(x,y, x + cell_width, y + cell_height, fill=row_color, tag="table_rect")
-                self.canvas.create_text(x + cell_width // 2, y + cell_height // 2, text=col_data, fill="black", tag="table_text")
-            row_index += 1
-        # Draw navigation buttons
-        prev_button = Button(self.canvas, text="Prev", command=self.prev_page)
-        prev_button.place(x=100, y=400)
-        next_button = Button(self.canvas, text="Next", command=self.next_page)
-        next_button.place(x=300, y=400)
-
-    def prev_page(self):
-        if self.current_page > 0:
-            self.current_page -= 1
-            self.place_word_on_canvas("word")
-
-    def next_page(self):
-        max_page = len(self.data) // self.page_size
-        if self.current_page < max_page:
-            self.current_page += 1
-            self.place_word_on_canvas("")
-
-
 
     def run_uclid(self):
         """_summary_
         """
-        print("Now run the code")
-        #file_path = filedialog.askopenfilename(title="Select a UCLID5 file", filetypes=[("UCLID5 Files", "*.ucl")])
+         
         if self._file_upload_ is not  None:
-            # Run UCLID5 command within the Docker container
             # Create an instance of the UclidRunner class
             uclid_runner = UclidRunner()
-            result = uclid_runner.run_uclid5_command(self._file_upload_)
-            decoded_result=result.decode('utf8').replace("'", '"')        
-            
-            
-            print(result)
-            print("#################################")
+            result = uclid_runner.run_uclid5_command(self._file_upload_)      
+            decoded_result=result.decode('utf8').replace("'", '"')         
+                         
             # Convert the result to a JSON string
             json_result = orjson.loads(decoded_result) # pylint: disable=maybe-no-member
 
             # Display the result in the custom text widget
-            self.result_text.delete(1.0, END)  # Clear previous content
-            
-            print(json_result)
-            
-             # Highlight different sections with tags
+            #self.result_text.delete(1.0, END)  # Clear previous content
+                                     
+            # Uclid5 sections
             output_text = json_result.get("output", "")
             error_text = json_result.get("error", "")
-
-            self.result_text.insert(END, "Output: ")
-            self.result_text.insert(END, output_text, "output")
-            self.result_text.insert(END, "\nError: ")
-            self.result_text.insert(END, error_text, "error")
-
+            
+            #Check if there are any errors in the scripts
+            if error_text != "":
+                self.result_text.insert(END, "\nError: ")
+                self.result_text.insert(END, f"UCLID5 failed to run properly, Please fix these Errors\n{error_text}", "error")
+                
+            elif "Syntax error" in output_text:
+                self.result_text.insert(END, "\nCheck Syntax: ")
+                self.result_text.insert(END, f"Please fix these Syntax Error(s): \n{output_text}", "syntaxerror")
+                
+            else:  
+                # Display the result in the custom text widget
+                self.result_text.delete(1.0, END)  # Clear previous content
+                
+                # Check the summary if it is there.           
+                
+                uclid_summary = ProcessUclidResults()
+                #passed,failed,inderteminated = uclid_summary.get_summary(output_text)
+                #print(passed,failed,inderteminated)
+                
+                # with the json results, check if the file contains Counterexamples
+                if uclid_summary.check_for_CEX:
+                    cex_steps = uclid_summary.get_CEX(output_text)
+                    passed,failed,inderteminated = uclid_summary.get_summary(output_text)
+                    self.save_CEX_to_json(cex_steps,passed,failed, inderteminated)
+                    # 
+                    
+                else:                    
+                    self.result_text.insert(END, "Output: \n")
+                    self.result_text.insert(END, output_text, "reportWithoutCEX")
+                    
+                    
+        else:
+            # Clear previous content
+            self.result_text.delete(1.0, END)  # Clear previous content
+            self.result_text.insert(END, "\nNo File Chosen: ")
+            self.result_text.insert(END, "Please Upload file first", "nofile")
+    #TODO : MAY NEED TO CHNAGE THIS SOME
+    
+    def save_CEX_to_json(self, cex_steps,passed,failed, inderteminated):
+        # Save cex, passed, and failed counts to a file
+        print("GET THE FOLLOWING TO SAVE ")
+        print(cex_steps,passed,failed,inderteminated)
+        data = {
+                    "cex": cex_steps,
+                    "passed": passed,
+                    "failed": failed,
+                    "inderteminated": inderteminated
+                }
+                
+        file_path = "checker/cex_results.json"  # Path to the file to save the results
+        with open(file_path, "w") as file:
+            json.dump(data, file)
             
     def get_uploaded_file(self):
         """_summary_
         """
-        print("select the file")
+        #print("select the file")
         file_path = filedialog.askopenfilename(title="Select a UCLID5 file", filetypes=[("UCLID5 Files", "*.ucl")])
         if file_path:
             self._file_upload_ = file_path

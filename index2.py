@@ -1,7 +1,7 @@
 import tkinter as tk
-from tkinter import ttk
+from tkinter import ttk, 
 from tkinter import font
-From tkcode import CodeEditor  
+From ttk import CodeEditor  
 
 
 code=input("Enter file name : ")

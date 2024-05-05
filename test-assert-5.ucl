@@ -1,0 +1,27 @@
+module main {
+    var tiwonge : bv64;
+    var atusaye : bv64;
+
+    init {
+        tiwonge = 0bv64;
+        atusaye = 0bv64;
+    }
+    
+    next {
+        if (atusaye <= 1bv64) {
+            atusaye' = atusaye + 1bv64;
+            tiwonge' = tiwonge + 1bv64;
+        } else {
+            atusaye' = atusaye - 1bv64;
+            tiwonge' = atusaye - 1bv64;
+        }
+        assert(tiwonge <= 1bv64);
+    }
+    
+    control {
+        f = bmc(7);
+        check;
+        f.print_cex();
+        print_results;
+    }
+}
