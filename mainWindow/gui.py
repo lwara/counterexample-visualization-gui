@@ -1,5 +1,5 @@
 from pathlib import Path
-from tkinter import Toplevel, Tk, Canvas, Button,StringVar, PhotoImage
+from tkinter import Label, Toplevel, Tk, Canvas, Button,StringVar, PhotoImage
 from mainWindow.dashboard.gui1 import Dashboard
 
 from mainWindow.fileUpload.gui import Upload
@@ -7,10 +7,7 @@ from mainWindow.reportExecution.gui import Report
 
 def mainWindow():  
     
-    Uclid5GUI()  
-    
-      
-    
+    Uclid5GUI()   
     
 class Uclid5GUI(Toplevel):
     
@@ -26,14 +23,14 @@ class Uclid5GUI(Toplevel):
 
     
         self.geometry("2500x2100")
-        self.configure(bg="#0F4A63")
+        self.configure(bg="#E5E4E2")
         self.title("UCLID5 GUI- Simple way of presenting Counterexamples")
         self.current_window = None 
         #self.current_window_label = StringVar()
         
         self.canvas = Canvas(
             self,
-            bg="#0F4A63",
+            bg="#E5E4E2",
             height=2100,
             width=2500,
             bd=0,
@@ -49,82 +46,33 @@ class Uclid5GUI(Toplevel):
             2100.0,
             fill="#D9D9D9",
             outline=""
-        )
+        )         
 
-        self.canvas.create_text(
-            1050.0,
-            2000.0,
-            anchor="nw",
-            text="Copyright-University of edinburgh Project",
-            fill="#428EA6",
-            font=("MontserratRoman Bold", 32 * -1)
-        )
+         
+        # Load the image file
+        self.logo_image = PhotoImage(file=self.relative_to_assets("uclid5-image.png"))
 
-        self.canvas.create_text(
-            34.0,
-            33.0,
-            anchor="nw",
-            text="UCLID5",
-            fill="#FFFFFF",
-            font=("Montserrat Bold", 24 * -1)
-        )
-
-        button_image_1 = PhotoImage(
-            file=self.relative_to_assets("button_1.png"))
-        self.button_1 = Button(
-            image=button_image_1,
-            borderwidth=0,
-            highlightthickness=0,
-            command=lambda: self.on_button_1_click("upload"),
-            relief="flat"
-        )
-        self.button_1.place(
-            x=37.0,
-            y=1924.0,
-            width=157.0,
-            height=57.0
-        )
-
-        self.canvas.create_text(
-            1077.0,
-            14.0,
-            anchor="nw",
-            text="ABOUT THE DASHBOARD",
-            fill="#0F4A63",
-            font=("MontserratRoman Bold", 32 * -1)
-        )
-
-        self.canvas.create_text(
-            650.0,
-            278.0,
-            anchor="nw",
-            text="This is a Uclid5 Graphic User Interface (GUI). "
-                 "It has two main functionalities :\n\n"
-                 "You can run code directly on the Gui by clicking ‘Run Code’\n"
-                 "You can upload a file\n",
-            fill="#6F6C6C",
-            font=("MontserratRoman Bold", 24 * -1)
-        )
-
-        self.button_image_2 = PhotoImage(
-            file=self.relative_to_assets("button_2.png"))
-        self.button_2 = Button(
-            self.canvas,
-            image=self.button_image_2,
-            borderwidth=0,
-            highlightthickness=0,
-            command=lambda: self.on_button_1_click("upload"),
-            relief="flat"
-        )
-        self.button_2.place(
-            x=0.0,
-            y=288.0,
+        # Create a label to display the logo
+        self.logo_label = Label(self, image=self.logo_image)
+        self.logo_label.place(
+            x=0,
+            y=0,
             width=405.0,
-            height=100.0
+            height=200.0
         )
-
+        
+        self.university_logo_image = PhotoImage(file=self.relative_to_assets("logo.png"))
+        # Create a label to display the logo
+        self.university_logo_label = Label(self, image=self.university_logo_image)
+        self.university_logo_label.place(
+            x=0,
+            y=1700,
+            width=405.0,
+            height=400.0
+        )
+         
         self.button_image_3 = PhotoImage(
-            file=self.relative_to_assets("button_3.png"))
+            file=self.relative_to_assets("button_4.png"))
         self.button_3 = Button(
             self.canvas,
             image=self.button_image_3,
@@ -140,22 +88,7 @@ class Uclid5GUI(Toplevel):
             height=100.0
         )
 
-        self.button_image_4 = PhotoImage(
-            file=self.relative_to_assets("button_4.png"))
-        self.button_4 = Button(
-            self.canvas,
-            image=self.button_image_4,
-            borderwidth=0,
-            highlightthickness=0,
-            command=lambda: print(""),
-            relief="flat"
-        )
-        self.button_4.place(
-            x=0.0,
-            y=388.0,
-            width=405.0,
-            height=100.0
-        )
+    
         self.windows = {
             "upload": Report(self),
              "dash" : Dashboard(self),
@@ -190,15 +123,6 @@ class Uclid5GUI(Toplevel):
         self.windows[name].place(x=405, y=0, width=2095.0, height=2100.0)
         
   
-        #print("button_1 clicked")
-
-    def on_button_2_click(self):
-        print("button_2 clicked")
-
-    def on_button_3_click(self):
-        print("button_3 clicked")
-
-    def on_button_4_click(self):
-        print("button_4 clicked")
+         
 
 

@@ -1,18 +1,28 @@
 import csv
-import json
 import os
 import tkinter as tk
-from tkinter import END, Canvas, Scrollbar, Text, ttk
+from tkinter import END, Canvas, Menu, Scrollbar, Text, ttk
 from tkinter import filedialog
 from tkinter import Frame
-import webbrowser
 from tkinter import messagebox
 
 import orjson
 
 from checker.file_upload import ProcessUclidResults, UclidRunner
 
+#TODO:
 
+#1. edit the pop up window
+#2. the uploaded file must open and be displayed on the text area -DONE
+#3. the run code button must be working DONE
+#4. Write an email. DONE
+#5. Show which counterexample corresponds to which assertion. DONE
+#6. when there are multiple counterexamples, the code is multiplying the times. eg cex is appearing more than once DONE
+#7. when thr run command it clicked, it should clear the 'file uploaded variable' and text widget
+#8. when there is no file selected, then  a window must appear DONE
+#9. Have a sample basic code for uclid5,
+#10. if the user is on the text area, bind command to run the code. e.g <ctl> +r, to run, ctl_s to save etc
+#11. SAVE code button not working DONE
 
 
 def counterExampleReport():
@@ -26,7 +36,8 @@ class Report(Frame):
         self.configure(bg="#D9D9D9")  
         
         
-        self._file_upload_ = None       
+        self._file_upload_ = None   # this keeps the directory of the uploaded file. 
+        self._file_saved_from_text_area_ = None # this keeps the temporary directory for written code.    
         self.passed = 0
         self.failed = 0
         self.inderteminated = 0
@@ -44,7 +55,7 @@ class Report(Frame):
         #self.load_json_result_data()
 
         self.data = []
-
+        self.original_data = self.data # this will keep the orignal data
         # Display Heading of the Report
         heading_label = ttk.Label(self, text="CounterExample Visualization GUI", font=("Helvetica", 24, "bold"))
         heading_label.place(x=600, y= 10)
@@ -54,41 +65,57 @@ class Report(Frame):
         line_header_canvas.create_line(0, 0, 100, 0, width=2)
         line_header_canvas.place(x=500, y=60)
         
-        # for uploading the file
-        upload_text = ttk.Label(self, text="Click the buttons to upload file : ", font=("Helvetica", 14, "bold"))
-        #upload_text.place(x=100, y=200)
+         
                
         # Create upload buttons
-        upload_button = ttk.Button(self, text="Upload File", command=self.get_uploaded_file)
-        upload_button.place(x=10, y=100)
-        run_button = ttk.Button(self, text="Run Uclid5", command=self.run_uclid, style="Run.TButton")
-        run_button.place(x=200, y=100)
+        upload_button = ttk.Button(self, text="Upload File", command=self.get_uploaded_file, style="Run.TButton")
+        upload_button.place(x=10, y=100)        
+        # for showing uploaded file
+        self.uploaded_file = ttk.Label(self, text="Uploaded file is : ", font=("Helvetica", 12))
+         
         
         # Define a custom style for the save button
         self.style = ttk.Style()
         self.style.configure("Run.TButton", background="#dfe2e8")
-        # for showing uploaded file
-        self.uploaded_file = ttk.Label(self, text="Uploaded file is : ", font=("Helvetica", 12))
-        #uploaded_file.place(x=100, y=320) 
+         
         
         #clear and save buttons
-        save_code_button = ttk.Button(self, text="Save", command=self.get_uploaded_file)
-        save_code_button.place(x=550, y=100)
-        clear_code_button = ttk.Button(self, text="Clear Code", command=self.run_uclid)
-        clear_code_button.place(x=750, y=100)        
-                
-        ###############TEXT EDITOR FOR CODE###############
-        # Create a canvas for line numbers
-        self.line_number_canvas = tk.Canvas(self, width=40, height=965, bg="green", highlightthickness=0)
-        self.line_number_canvas.place(x=170,y=200)
+        # Create labels that function like buttons
+         
+        clear_code_label = ttk.Label(self, text="Clear", cursor="hand2")
+        clear_code_label.place(x=250, y=170)
+        clear_code_label.bind("<Button-1>", lambda event: self.clear_code_editor())
         
-        self.result_text = Text(self, wrap="word", width=100, height=30)         
+        boilerplate_code_label = ttk.Label(self, text="Boilerplate", cursor="hand2")
+        boilerplate_code_label.place(x=400, y=170)
+        boilerplate_code_label.bind("<Button-1>", lambda event: self.load_boilerplate())
+        
+
+        run_code_label = ttk.Button(self, text="Run", command=self.run_uclid, style="Run.TButton", cursor="hand2") #ttk.Label(self, text="Run", cursor="hand2")
+        run_code_label.place(x=970, y=160)
+        #run_code_label.bind("<Button-1>", lambda event: self.run_uclid())
+        ###############TEXT EDITOR FOR CODE###############
+        #### The following creates a menu for the text editor
+        file_menu_button = ttk.Menubutton(self, text="File", direction="below", width=5, padding=(10))
+        file_menu_button.place(x=10, y=160)
+        file_menu = tk.Menu(file_menu_button, tearoff=0)
+        file_menu_button["menu"] = file_menu
+
+        file_menu.add_command(label="open", command=self.get_uploaded_file)
+        file_menu.add_command(label="Boilerplate", command=self.load_boilerplate)
+        file_menu.add_command(label="Save", command=self.save_code)
+        file_menu.add_separator()
+        file_menu.add_command(label="Run Code", command=self.run_uclid)
+
+
+        # ####Here is the text-area code 
+        self.result_text = Text(self, wrap="word", width=70, height=30)         
         # Calculate the height of the Text widget in terms of lines
         text_height_in_lines = int(self.result_text.cget("height"))
 
         # Create the Text widget
         #self.result_text = Text(self, wrap="word", width=80, height=10)
-        self.result_text.place(x=200, y=200)
+        self.result_text.place(x=10, y=200)
 
         # Calculate the height of one line of text in the Text widget
         line_height = self.result_text.tk.call("font", "metrics", self.result_text.cget("font"), "-linespace")
@@ -98,7 +125,7 @@ class Report(Frame):
 
         # Create the Scrollbar widget
         self.scrollbar = Scrollbar(self, orient="vertical", command=self.result_text.yview)
-        self.scrollbar.place(x=1780, y=200, height=self.text_height_in_pixels)  # Set the height to match the Text widget
+        self.scrollbar.place(x=1120, y=200, height=self.text_height_in_pixels)  # Set the height to match the Text widget
 
         # Configure the Scrollbar to work with the Text widget
         self.result_text.config(yscrollcommand=self.scrollbar.set)
@@ -106,8 +133,9 @@ class Report(Frame):
         # Configure tags for different sections
         self.result_text.tag_configure("output", foreground="green")
         self.result_text.tag_configure("error", foreground="red")
+        self.result_text.tag_configure("nofile", foreground="#7393B3")
         ############################
-                
+         
                 
                 
                 
@@ -133,6 +161,7 @@ class Report(Frame):
         self.filter_label = ttk.Label(self, text="Filter:")
         self.filter_label.place(x=500, y=1210)
         self.filter_entry = ttk.Entry(self)
+        self.filter_entry.bind("<Return>", lambda event: self.apply_filter())
         self.filter_entry.place(x=580, y=1210)
         self.filter_button = ttk.Button(self, text="Apply Filter", command=self.apply_filter)
         self.filter_button.place(x=950, y=1210)
@@ -143,7 +172,7 @@ class Report(Frame):
         
         # Create a frame to hold the table
         self.table_frame = ttk.Frame(self)
-        self.table_frame.place(x=200, y=1300)
+        self.table_frame.place(x=110, y=1300)
         
         # here is canvas that will cover the Frame 
         
@@ -155,9 +184,9 @@ class Report(Frame):
             state='disabled'  # Set the state to 'disabled'
             )
         table_text_area.place(
-            x=120.0,
+            x=100.0,
             y=1270.0,
-            width=1849.0,
+            width=1900.0,
             height=800.0
             )
         self.table_frame.lift()
@@ -170,8 +199,70 @@ class Report(Frame):
         self.master.resizable(False, False)
         
         # Create an instance of the Uclid5GUI class
-             
-    # from FILE UPLOAD WINDOW :
+    # load boilerplate 
+    def load_boilerplate(self):
+        
+        uclid_code = "module <module_name> { \n"\
+                    "   // Declarations of variables, types, and functions\n"\
+                    "   // Initial states and assignments\n"\
+                    "   init {\n"\
+                    "       // Initialize variables\n"\
+                    "       // Example:\n"\
+                    "       // variable = initial_value;\n}\n"\
+                    "       // Transition rules\n"\
+                    "   next {\n"\
+                    "       // Describe how variables change between states\n"\
+                    "       // Example:\n"\
+                    "       // if (condition) {\n"\
+                   "        //     variable' = new_value;\n"\
+                   "        // } else {\n"\
+                    "       //     variable' = old_value;\n"\
+                    "       // }\n}"\
+                "   // Assertion checks\n"\
+               "    control {\n"\
+                    "   // Specify properties or assertions to check\n"\
+                    "   // Example:\n"\
+                    "   // assert(property_to_check);\n"\
+                "   }\n}"
+        if self.is_textarea_empty():
+            self.result_text.insert(tk.END, uclid_code)
+        else:
+            if messagebox.askyesno("Confirmation", "The code editor is not empty. Do you want to clear the written code?"):
+                self.result_text.delete(1.0, tk.END)
+                self.result_text.insert(tk.END, uclid_code)    
+                
+    # Clear code editor
+    def clear_code_editor(self):
+        if self.is_textarea_empty():
+            self.result_text.delete(1.0, tk.END)
+        else:
+            if messagebox.askyesno("Confirmation", "The code editor is not empty. Do you want to clear the written code?"):
+                self.result_text.delete(1.0, tk.END)
+
+            
+        
+    def save_code(self):
+        code = self.result_text.get("1.0", "end")
+        # Ask user to select a file location for saving
+        file_path = filedialog.asksaveasfilename(
+            defaultextension=".ucl",
+            filetypes=[("ucl files", "*.ucl"), ("All files", "*.*")]
+        )
+        if file_path:
+            if os.path.exists(file_path):
+                # File already exists, ask user if they want to overwrite
+                response = messagebox.askyesno(
+                    "File Exists",
+                    "The file already exists. Do you want to overwrite it?"
+                )
+                if not response:
+                    return  # Cancel saving
+            # Save data to the selected CSV file
+            with open(file_path, "w") as file:
+                 file.write(code)
+            # Notify the user that the file has been saved
+            messagebox.showinfo("Success ", f"Your code has been saved to:\n{file_path}")
+        
     
     def get_uploaded_file(self):
         """_summary_
@@ -181,6 +272,18 @@ class Report(Frame):
         if file_path:
             #self._file_upload_ = file_path
             self.place_word_on_canvas(file_path)
+            self.place_code_on_code_editor(file_path)
+            
+    def place_code_on_code_editor(self, code_file_path):
+        # Read content of the selected file
+        if code_file_path:
+            with open(code_file_path, "r") as file:
+                content = file.read()
+                # Clear the text widget before inserting new content
+                self.result_text.delete(1.0, tk.END)
+                # Insert the content into the text widget
+                self.result_text.insert(tk.END, content)
+        
             
     # This is to show which file has been uploaded                 
     def place_word_on_canvas(self, word):
@@ -188,15 +291,42 @@ class Report(Frame):
         self.uploaded_file.pack_forget()     
         # for showing uploaded file
         self.uploaded_file = ttk.Label(self, text=f"Uploaded file is : {word}", font=("Helvetica", 12))
-        self.uploaded_file.place(x=10, y=150) 
+        self.uploaded_file.place(x=200, y=100) 
         self._file_upload_ = word
         
+        self.result_text.delete(1.0, END)  # Clear previous content
+        self.result_text.insert(END, word, "code_uclid")
+                
+    def get_text_area_code(self):
+        # Get the content of the text widget
+        
+        print("that means there is something on the text area")
+        code = self.result_text.get(1.0, tk.END) # get the code 
+        #print(f"this is is the code \n{code}")
+        # Write the code to a temporary file
+        with open("temp/uclid5-code.ucl", "w") as file:
+            file.write(code)
+        self._file_upload_="temp/uclid5-code.ucl"      
+            
+        
+    def is_textarea_empty(self):
+        # Get the content of the textarea
+        content = self.result_text.get("1.0", "end-1c")  # "1.0" is the start position, "end-1c" excludes the newline at the end
+    
+        # Check if the content is empty
+        if not content:
+            return True
+        else:
+            return False
+        
+
     def run_uclid(self):
         """_summary_
         """
-        #print("We are inside the run Uclid function") 
-        if self._file_upload_ is not  None:
-            #print("we got the file")
+        checker = self.is_textarea_empty()
+        if checker is False : # or self._file_upload_ is not None: # that means either there is code or the file has been uploaded
+            # simply get what is in the text area
+            self.get_text_area_code()
             # Create an instance of the UclidRunner class
             uclid_runner = UclidRunner()
             result = uclid_runner.run_uclid5_command(self._file_upload_)      
@@ -216,18 +346,17 @@ class Report(Frame):
             if error_text != "":
                 self.result_text.pack_forget()
                 self.scrollbar.pack_forget()
-                self.result_text.insert(END, "\nError: ")
                 self.result_text.insert(END, f"UCLID5 failed to run properly, Please fix these Errors\n{error_text}", "error")
                 
             elif "Syntax error" in output_text:
-                self.result_text.pack_forget()
-                self.scrollbar.pack_forget()
-                self.result_text.insert(END, "\nCheck Syntax: ")
-                self.result_text.insert(END, f"Please fix these Syntax Error(s): \n{output_text}", "syntaxerror")
+                #self.result_text.pack_forget()
+                #self.scrollbar.pack_forget()
+                
+                self.result_text.insert(END, f"\n{output_text}", "syntaxerror")
                 
             else:  
                 # Display the result in the custom text widget
-                self.result_text.delete(1.0, END)  # Clear previous content
+                #self.result_text.delete(1.0, END)  # Clear previous content
                 
                 # Check the summary if it is there.           
                 
@@ -237,7 +366,7 @@ class Report(Frame):
                 
                 # with the json results, check if the file contains Counterexamples
                 if uclid_summary.check_for_CEX:
-                    cex_steps = uclid_summary.get_CEX(output_text)
+                    cex_steps = uclid_summary.get_CEX(output_text, self._file_upload_)
                     passed,failed,inderteminated = uclid_summary.get_summary(output_text)
                     self.data = cex_steps
                     self.passed = passed
@@ -252,20 +381,25 @@ class Report(Frame):
                     # Display data for the current page
                     self.display_current_page()
                     
+                    # keep the original data for the sake of filters
+                    self.original_data = self.data
+                    
                 else:                    
                     self.when_no_cex(output_text)
                     
                     
-        else:
-            self.result_text.pack_forget()
-            self.scrollbar.pack_forget()
+        elif checker is True and self._file_upload_ is  None:
+            #self.result_text.pack_forget()
+            #self.scrollbar.pack_forget()
             #print("it seems file is none Prof")
             # Clear previous content
-            self.result_text.delete(1.0, END)  # Clear previous content
-            self.result_text.insert(END, "\nNo File Chosen: ")
-            self.result_text.insert(END, "Please Upload file first", "nofile")
+            #self.result_text.delete(1.0, END)  # Clear previous content
+            self.result_text.insert(END, "Please Upload file first or write some uclid 5 code ", "nofile")
             #self.result_text.place(x=200, y=400)
            # self.scrollbar.place(x=1680, y=400, height=self.text_height_in_pixels)  # Set the height to match the Text widget
+        elif checker is True and self._file_upload_ is not None:
+            self.result_text.insert(END, "Please do not delete here after uploading your file.", "nofile")
+            
 
             
     def when_no_cex(self, word):
@@ -287,7 +421,7 @@ class Report(Frame):
             
     def create_column_labels(self):
         # Create column labels
-        columns = ["No:","Step", "Status"]
+        columns = ["Counter-example","Assertion"]
         for col, column_name in enumerate(columns):
             label = ttk.Label(self.table_frame, text=column_name, font=("Helvetica", 10, "bold"))
             label.grid(row=0, column=col, sticky="nsew", padx=1, pady=1)
@@ -315,7 +449,24 @@ class Report(Frame):
         # Display data for the current page
         start_index = self.current_page * self.page_size
         end_index = min(start_index + self.page_size, len(self.data))
+        # Display only the first column
         for row, item in enumerate(self.data[start_index:end_index], start=1):
+            for col, value in enumerate(item):
+                # Choose background color based on row number and status
+                bg_color = "lightgray" if row % 2 == 0 else "white"
+                if col == 2 and value == "FAILED":
+                    bg_color = "red"
+                label_column_1 = HoverLabel(self.table_frame, text=item[0], background=bg_color, padding=(10,20), borderwidth=1,
+                                relief="solid", font=("Helvetica", 10), link=item[-1] if col == 2 else None)
+                label_column_1.grid(row=row, column=0, sticky="nsew", padx=1, pady=1)
+                label_column_1.bind("<Button-1>", lambda event, row=row: self.open_trace(row))
+
+                label_column_2 = HoverLabel(self.table_frame, text=item[1], background=bg_color, padding=(10,20), borderwidth=1,
+                                relief="solid", font=("Helvetica", 10), link=item[-1] if col == 2 else None)
+                label_column_2.grid(row=row, column=1, sticky="nsew", padx=1, pady=1)
+                label_column_2.bind("<Button-1>", lambda event, row=row: self.open_trace(row))
+
+        """for row, item in enumerate(self.data[start_index:end_index], start=1):
             for col, value in enumerate(item):
                 # Choose background color based on row number and status
                 bg_color = "lightgray" if row % 2 == 0 else "white"
@@ -326,20 +477,20 @@ class Report(Frame):
                 font=("Helvetica", 10), link=item[-1] if col == 2 else None)
                 label.grid(row=row, column=col, sticky="nsew", padx=1, pady=1)
                 label.bind("<Button-1>", self.open_link)
-
+"""
          # Display summary label
         total_failed_label = ttk.Label(self, text=f"{total_failed} {total_failed_text}", font=("Helvetica", 18), background="white", borderwidth=1, relief="flat",padding=(30,30) )
-        total_failed_label.place(x=100, y= 500)        
+        #total_failed_label.place(x=100, y= 500)        
         #total_failed_label_1 = ttk.Label(self, text=total_failed_text, font=("Helvetica", 20, "bold"))
         #total_failed_label_1.place(x=500, y=350)
         
         total_passed_label = ttk.Label(self, text=f"{total_passed} {total_passed_text}", font=("Helvetica", 18), background="white", borderwidth=1, relief="flat",padding=(30,30) )
-        total_passed_label.place(x=100, y=650)        
+        #total_passed_label.place(x=100, y=650)        
         #total_passed_label_1 = ttk.Label(self, text=total_passed_text, font=("Helvetica", 20))
         #total_passed_label_1.place(x=500, y=500 )
         
         total_inderterminated_label = ttk.Label(self, text=f"{total_inderterminate} {total_inderterminate_text}", font=("Helvetica", 18), background="white", borderwidth=1, relief="flat",padding=(20,30) )
-        total_inderterminated_label.place(x=100, y=800)
+        #total_inderterminated_label.place(x=100, y=800)
         #total_inderterminated_label_1 = ttk.Label(self, text=total_inderterminate_text, font=("Helvetica", 20, "bold"))
         #total_inderterminated_label_1.place(x=500, y=600)
         
@@ -353,7 +504,7 @@ class Report(Frame):
         self.next_button.grid(row=end_index + 1, column=3, columnspan=3, pady=(10, 5))"""
 
         # Schedule stopping the loading icon after 5 seconds
-        self.after(5000, self.stop_loading_icon)
+        #self.after(5000, self.stop_loading_icon)
 
     def stop_loading_icon(self):
         # Hide loading icon
@@ -372,11 +523,20 @@ class Report(Frame):
             self.display_current_page()
 
     def apply_filter(self):
-        filter_text = self.filter_entry.get().strip()
+        filter_text = self.filter_entry.get().strip().lower()  # Ensure lowercase for case-insensitive comparison
         if filter_text:
-            self.data = [row for row in self.data if filter_text.lower() in " ".join(row).lower()]
+            filtered_data = []
+            for cex, assertion, data in self.data:
+                if filter_text in cex.lower() or filter_text in assertion.lower():
+                    print("found match : ")
+                    filtered_data.append((cex, assertion, data))
+                    
+            if not filtered_data:
+                tk.messagebox.showinfo("No Matches", "No matching text found.")
+            else:
+                self.data = filtered_data
         else:
-            self.data = self.data.copy()
+            self.data = self.original_data
         self.current_page = 0
         self.display_current_page()
         
@@ -403,11 +563,53 @@ class Report(Frame):
             # Notify the user that the file has been saved
             messagebox.showinfo("File Saved", f"The data has been saved to:\n{file_path}")
          
-    def open_link(self, event):
-        link = event.widget.link
-        if link:
-            if messagebox.askyesno("Open Link", f"Do you want to open the link:\n\n{link}"):
-                webbrowser.open_new_tab(link)
+    
+
+    def open_trace(self, row):
+        popup = tk.Toplevel(self)
+        popup.title("Additional Columns")
+
+        # Reposition the pop-up window
+        popup_width = 1000  # Adjust as needed
+        popup_height = 1000  # Adjust as needed
+        screen_width = popup.winfo_screenwidth()
+        screen_height = popup.winfo_screenheight()
+        x_coordinate = (screen_width - popup_width) // 2
+        y_coordinate = (screen_height - popup_height) // 2
+        popup.geometry(f"{popup_width}x{popup_height}+{x_coordinate}+{y_coordinate}")
+        
+        # Get the data for the selected row
+        selected_row_data = self.data[row - 1]  # Adjust for zero-based indexing
+        print(type(selected_row_data))
+        #print(selected_row_data)
+        selected_row_data = tuple(selected_row_data[2:])
+        print (selected_row_data)
+        # Display additional columns in a table format
+        for col, value in enumerate(selected_row_data, start=1):
+            label = ttk.Label(popup, text=value, font=("Helvetica", 10))
+            label.grid(row=row, column=col, sticky="nsew", padx=1, pady=1)
+        
+                  
+        """for row, item in enumerate(selected_row_data, start=1):
+            
+            for col, value in enumerate(item, start=1):
+                # Choose background color based on row number and status
+                bg_color = "lightgray" if row % 2 == 0 else "white"
+                if col == 2 and value == "FAILED":
+                    bg_color = "red"
+                label = ttk.Label(popup, text=item, background=bg_color, padding=(10,20), borderwidth=1,
+                relief="solid",
+                font=("Helvetica", 10))
+                label.grid(row=row, column=col, sticky="nsew", padx=1, pady=1)
+                 """
+        # Add buttons or other widgets
+        save_button = ttk.Button(popup, text="Save", command=self.save_data)
+        save_button.grid(row=row + 1, column=0, sticky="nsew", padx=1, pady=1)
+
+        close_button = ttk.Button(popup, text="Close", command=popup.destroy)
+        close_button.grid(row=row + 1, column=1, sticky="nsew", padx=1, pady=1)
+
+        # Optionally, you can add more buttons or widgets as needed
 
 class HoverLabel(ttk.Label):
     def __init__(self, master=None, **kwargs):

@@ -1,5 +1,4 @@
-self.result_text.pack_forget()
-            self.scrollbar.pack_forget() module main {
+ module main {
     var test1 : bv64;
     var test2 : bv64;
 

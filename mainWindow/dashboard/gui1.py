@@ -33,12 +33,13 @@ class Dashboard(Frame):
         )
 
         self.canvas.create_text(
-            594.0,
+            200.0,
             460.0,
             anchor="nw",
             text="This is a Uclid5 Graphic User Interface (GUI). It has two main functionalities :\n\n"
-                 "You can run code directly on the Gui by clicking ‘Run Code’\n"
-                 "You can upload a file\n",
+                 "1.You can run code directly on the Gui by clicking ‘Run Code’\n"
+                 "2.You can upload a file\n\n"
+                 " Please click below to start :",
             fill="#6F6C6C",
             font=("MontserratRoman Bold", 24 * -1)
         )
