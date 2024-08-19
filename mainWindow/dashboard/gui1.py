@@ -10,11 +10,11 @@ class Dashboard(Frame):
         Frame.__init__(self, master,*args, **kwargs)
         
         self.master =master
-        self.configure(bg="#D9D9D9")
+        self.configure(bg="#D3D3D3")
         #self.geometry("2095x2000")
         self.canvas = Canvas(
             self,
-            bg="#D9D9D9",
+            bg="#D3D3D3",
             height=2000,
             width=2095,
             bd=0,
@@ -27,8 +27,8 @@ class Dashboard(Frame):
             684.0,
             47.0,
             anchor="nw",
-            text="ABOUT THE DASHBOARD",
-            fill="#0F4A63",
+            text="ABOUT THE INTERFACE",
+            fill="#000000",
             font=("MontserratRoman Bold", 32 * -1)
         )
 
@@ -37,13 +37,17 @@ class Dashboard(Frame):
             460.0,
             anchor="nw",
             text="This is a Uclid5 Graphic User Interface (GUI). It has two main functionalities :\n\n"
-                 "1.You can run code directly on the Gui by clicking ‘Run Code’\n"
+                 "1.You can run code directly \n"
                  "2.You can upload a file\n\n"
-                 " Please click below to start :",
-            fill="#6F6C6C",
+                 " Please click on 'Run Uclid' button to start\n\n\n"
+                 "Happy Coding :)",
+            fill="#000000",
             font=("MontserratRoman Bold", 24 * -1)
         )
-
+        # Draw a horizontal line
+        line_header_canvas = Canvas(self, width=1250, height=3, bg="black")
+        line_header_canvas.create_line(0, 0, 100, 0, width=2)
+        line_header_canvas.place(x=500, y=110)
         #self.master.resizable(False, False)
 
  

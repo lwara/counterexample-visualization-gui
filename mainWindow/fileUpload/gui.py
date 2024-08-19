@@ -4,7 +4,7 @@ from tkinter import END, Frame, Text, Scrollbar, Tk, Canvas, Button, PhotoImage,
 #from ttkbootstrap import END, Frame, Text, Scrollbar, Canvas, Button, PhotoImage
 import orjson
 
-from checker.file_upload import ProcessUclidResults, UclidRunner
+from checker.run_bmc import ProcessUclidResults, UclidRunner
 #from mainWindow.gui import Uclid5GUI
 #from mainWindow.reportExecution.gui import Report
  

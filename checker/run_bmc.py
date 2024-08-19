@@ -33,9 +33,8 @@ class ProcessUclidResults:
         pass
     
     def check_for_CEX(self, json_uclid5_result):
-        if "CEX" in json_uclid5_result:
-            return True
-        
+        if "CEX" in json_uclid5_result:            
+            return True        
         return False
     
     def get_CEX(self, json_uclid5_result, file_path):
@@ -104,6 +103,7 @@ class ProcessUclidResults:
         
     
     def get_summary(self, json_uclid5_result):
+        # this method only works for BMC 
         #print(json_uclid5_result)
         # Initialize variables to store steps and assertions
         #assertions_failed = 0

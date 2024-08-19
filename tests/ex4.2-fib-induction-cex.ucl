@@ -1,0 +1,25 @@
+module main {
+  // Part 1: System description.
+  var a, b, c : integer;
+
+  init {
+    a = 0;
+    b = 1;
+    c = 5;
+  }
+  next {
+    a', b', c' = b, a + b, c + a + b;
+  }
+
+  // Part 2: System specification.
+  invariant a_le_b: a > c;
+  
+
+  // Part 3: Proof script.
+  control {
+    vobj = induction;
+    check;
+    print_results;
+    vobj.print_cex(a, b);
+  }
+}

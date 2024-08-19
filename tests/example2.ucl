@@ -17,7 +17,7 @@ module main {
     c' = c + 2;
     d' = d - 2;
     e' = e + 3;
-    f' = f - 4;
+    f' = f - 3;
   }
 
   // Part 2: System specification.
@@ -36,4 +36,3 @@ module main {
     vobj.print_cex(a, b, c, d, e, f);
   }
 }
-
